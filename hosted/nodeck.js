@@ -58,13 +58,18 @@ function createImageElement() {
 	image.alt = '';
 	image.src = addCacheBuster(imgSrc);
 
+	const scale = Math.max(
+		window.innerWidth / image.naturalWidth,
+		window.innerHeight / image.naturalHeight
+	);
+
 	Object.assign(image.style, {
 		position: 'fixed',
-		width: 'auto',
-		height: 'auto',
-		minWidth: '100vw',
-		minHeight: '100vh',
-		transform: `scale(${imageZoom / 100})`,
+		left: '50%',
+		top: '50%',
+		width: `${image.naturalWidth}px`,
+		height: `${image.naturalHeight}px`,
+		transform: `translate(-50%, -50%) scale(${scale * imageZoom / 100})`,
 		transformOrigin: 'center center',
 		zIndex: '99',
 		visibility: 'visible'
