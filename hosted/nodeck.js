@@ -66,8 +66,8 @@ function createImageElement() {
 		height: 'auto',
 		minWidth: '100vw',
 		minHeight: '100vh',
-		transform: `translate(-50%, -50%) scale(${imageZoom / 100})`,
-		transformOrigin: 'center center',
+		translate: '-50%, -50%', 
+		scale: imageZoom / 100,
 		zIndex: '99',
 		visibility: 'visible'
 	});
