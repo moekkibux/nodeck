@@ -232,7 +232,7 @@ function changeImageZoom(value) {
 			}
 		);
 
-		requestedZoom = requestedZoom < MIN_ZOOM
+		imageZoom = requestedZoom < MIN_ZOOM
 			? MIN_ZOOM
 			: MAX_ZOOM;
 	}
