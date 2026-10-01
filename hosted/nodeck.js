@@ -68,7 +68,6 @@ function createImageElement() {
 			position: 'fixed',
 			width: `${image.naturalWidth}px`,
 			height: `${image.naturalHeight}px`,
-			margin: 'auto',
 			transform: `scale(${scale * imageZoom / 100})`,
 			transformOrigin: 'center center',
 			zIndex: '99',
