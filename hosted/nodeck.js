@@ -232,12 +232,12 @@ function changeImageZoom(value) {
 			}
 		);
 
-		imageZoom = clamp(requestedZoom, MIN_ZOOM, MAX_ZOOM);
-
 		imageZoom = requestedZoom < MIN_ZOOM
 			? MIN_ZOOM
 			: MAX_ZOOM;
 	}
+	
+	imageZoom = requestedZoom;
 
 	if (!imageElement?.isConnected) {
 		Logger.warn(
@@ -254,10 +254,6 @@ function changeImageZoom(value) {
 		'[nodeck] Image zoom changed',
 		`${imageZoom}%`
 	);
-}
-
-function clamp(value, min, max) {
-	return Math.max(min, Math.min(value, max));
 }
 
 function delay(ms) {
