@@ -106,18 +106,20 @@ async function changeImage(sourceUrl) {
 	}
 
 	Logger.info(
-		'[nodeck] changeImage was started',
+		'[nodeck] Image change started',
 		normalizedUrl
 	);
 
-	if (imageRequestController) {
-		imageRequestController.abort();
-	}
+	imageRequestController?.abort();
 
-	imageRequestController = new AbortController();
+	const requestController = new AbortController();
+	imageRequestController = requestController;
 
 	try {
-		const endpoint = new URL(imgSrc, location.href);
+		const endpoint = new URL(
+			imgSrc,
+			location.href
+		);
 
 		endpoint.searchParams.set(
 			'src',
@@ -126,48 +128,60 @@ async function changeImage(sourceUrl) {
 
 		endpoint.searchParams.set(
 			't',
-			Date.now()
+			Date.now().toString()
 		);
 
-		const response = await fetch(
-			endpoint.toString(), {
-				method: 'GET',
-				cache: 'no-store',
-				signal: imageRequestController.signal
-			}
-		);
-
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status} ${response.statusText}`);
-		}
+		await fetch(endpoint.toString(), {
+			method: 'GET',
+			mode: 'no-cors',
+			cache: 'no-store',
+			signal: requestController.signal
+		});
 
 		Logger.info(
-			'[nodeck] Connection to endpoint successful', {
-				status: response.status,
+			'[nodeck] Image change request was sent', {
 				source: normalizedUrl
 			}
 		);
 
 		if (!imageElement?.isConnected) {
-			Logger.warn('[nodeck] Image not found, attempting creation');
+			Logger.warn(
+				'[nodeck] Image element not found, recreating it'
+			);
 
 			imageElement = createImageElement();
 		}
 
-		imageElement.src = addCacheBuster(imgSrc);
+		await delay(250);
+
+		imageElement.src =
+			addCacheBuster(imgSrc);
 	} catch (error) {
 		if (error?.name === 'AbortError') {
-			Logger.info('[nodeck] Previous image change will be aborted');
+			Logger.info(
+				'[nodeck] Previous image change was aborted'
+			);
+
 			return;
 		}
 
 		Logger.error(
-			'[nodeck] Changing image failed',
+			'[nodeck] Image change failed',
 			error
 		);
 	} finally {
-		imageRequestController = null;
+		if (
+			imageRequestController === requestController
+		) {
+			imageRequestController = null;
+		}
 	}
+}
+
+function delay(ms) {
+	return new Promise(resolve => {
+		window.setTimeout(resolve, ms);
+	});
 }
 
 function cleanup() {
