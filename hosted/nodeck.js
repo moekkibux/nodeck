@@ -60,11 +60,13 @@ function createImageElement() {
 
 	Object.assign(image.style, {
 		position: 'fixed',
-		inset: '0',
-		width: '100vw',
-		height: '100vh',
-		objectFit: 'cover',
-		transform: `scale(${imageZoom / 100})`,
+		left: '50%',
+		top: '50%',
+		width: 'auto',
+		height: 'auto',
+		minWidth: '100vw',
+		minHeight: '100vh',
+		transform: `translate(-50%, -50%) scale(${imageZoom / 100})`,
 		transformOrigin: 'center center',
 		zIndex: '99',
 		visibility: 'visible'
