@@ -58,22 +58,17 @@ function createImageElement() {
 	image.alt = '';
 	image.src = addCacheBuster(imgSrc);
 
-	image.onload = () => {
-		const scale = Math.max(
-			window.innerWidth / image.naturalWidth,
-			window.innerHeight / image.naturalHeight
-		);
-	
-		Object.assign(image.style, {
-			position: 'fixed',
-			width: `${image.naturalWidth}px`,
-			height: `${image.naturalHeight}px`,
-			transform: `scale(${scale * imageZoom / 100})`,
-			transformOrigin: 'center center',
-			zIndex: '99',
-			visibility: 'visible'
-		});
-	}
+	Object.assign(image.style, {
+		position: 'fixed',
+		inset: '0',
+		width: '100vw',
+		height: '100vh',
+		objectFit: 'cover',
+		transform: `scale(${imageZoom / 100})`,
+		transformOrigin: 'center center',
+		zIndex: '99',
+		visibility: 'visible'
+	});
 
 	image.addEventListener('load', () => {
 		Logger.info(
