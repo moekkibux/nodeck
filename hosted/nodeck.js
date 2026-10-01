@@ -58,17 +58,19 @@ function createImageElement() {
 	image.alt = '';
 	image.src = addCacheBuster(imgSrc);
 
-	Object.assign(image.style, {
-		position: 'fixed',
-		inset: '0',
-		width: '100vw',
-		height: '100vh',
-		objectFit: 'cover',
-		transform: `scale(${imageZoom / 100})`,
-		transformOrigin: 'center center',
-		zIndex: '99',
-		visibility: 'visible'
-	});
+	image.onload = () => {
+		Object.assign(image.style, {
+			position: 'fixed',
+			inset: '0',
+			width: '100vw',
+			height: '100vh',
+			objectFit: 'cover',
+			transform: `scale(${imageZoom / 100})`,
+			transformOrigin: 'center center',
+			zIndex: '99',
+			visibility: 'visible'
+		});
+	}
 
 	image.addEventListener('load', () => {
 		Logger.info(
