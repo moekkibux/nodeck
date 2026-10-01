@@ -66,8 +66,6 @@ function createImageElement() {
 	
 		Object.assign(image.style, {
 			position: 'fixed',
-			left: '50%',
-			top: '50%',
 			width: `${image.naturalWidth}px`,
 			height: `${image.naturalHeight}px`,
 			margin: 'auto',
