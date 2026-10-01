@@ -70,7 +70,7 @@ function createImageElement() {
 			top: '50%',
 			width: `${image.naturalWidth}px`,
 			height: `${image.naturalHeight}px`,
-			transform: `translate(-50%, -50%) scale(${scale * imageZoom / 100})`,
+			transform: `scale(${scale * imageZoom / 100}) translate(-50%, -50%)`,
 			transformOrigin: 'center center',
 			zIndex: '99',
 			visibility: 'visible'
