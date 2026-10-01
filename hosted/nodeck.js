@@ -30,6 +30,12 @@ const IMAGE_ID = 'nodeck-img';
 let imageElement = null;
 let imageRequestController = null;
 
+const DEFAULT_ZOOM = 100;
+const MIN_ZOOM = 10;
+const MAX_ZOOM = 500;
+
+let imageZoom = DEFAULT_ZOOM;
+
 const previousBodyVisibility =
 	document.body.style.visibility;
 
@@ -58,6 +64,8 @@ function createImageElement() {
 		width: '100vw',
 		height: '100vh',
 		objectFit: 'cover',
+		transform: `scale(${imageZoom / 100})`,
+		transformOrigin: 'center center',
 		zIndex: '99',
 		visibility: 'visible'
 	});
@@ -178,6 +186,74 @@ async function changeImage(sourceUrl) {
 	}
 }
 
+function changeImageZoom(value) {
+	const argument = value?.trim().toLowerCase();
+
+	if (!argument) {
+		Logger.info(
+			'[nodeck] Current image zoom',
+			`${imageZoom}%`
+		);
+
+		return;
+	}
+
+	let requestedZoom;
+
+	if (argument === 'reset') {
+		requestedZoom = DEFAULT_ZOOM;
+	} else {
+		const normalizedValue =
+			argument.endsWith('%')
+				? argument.slice(0, -1).trim()
+				: argument;
+
+		requestedZoom = Number(normalizedValue);
+	}
+
+	if (!Number.isFinite(requestedZoom)) {
+		Logger.error(
+			'[nodeck] Invalid zoom value',
+			value
+		);
+
+		return;
+	}
+
+	if (
+		requestedZoom < MIN_ZOOM ||
+		requestedZoom > MAX_ZOOM
+	) {
+		Logger.warn(
+			'[nodeck] Zoom value is outside the allowed range. The next possible value will be used', {
+				requested: requestedZoom,
+				minimum: MIN_ZOOM,
+				maximum: MAX_ZOOM
+			}
+		);
+
+		requestedZoom = requestedZoom < MIN_ZOOM
+			? MIN_ZOOM
+			: MAX_ZOOM;
+	}
+
+	if (!imageElement?.isConnected) {
+		Logger.warn(
+			'[nodeck] Image element not found, recreating it'
+		);
+
+		imageElement = createImageElement();
+	}
+
+	imageElement.style.transform =
+		`scale(${imageZoom / 100})`;
+
+	Logger.info(
+		'[nodeck] Image zoom changed',
+		`${imageZoom}%`
+	);
+}
+
 function delay(ms) {
 	return new Promise(resolve => {
 		window.setTimeout(resolve, ms);
@@ -208,13 +284,14 @@ function initialize() {
 	imageElement = createImageElement();
 
 	registerCommand('img', changeImage);
+	registerCommand('zoom', changeImageZoom);
 
 	window.__w2gCleanup = cleanup;
 
 	Logger.info(
 		'[nodeck] Completed initialization', {
 			imageEndpoint: imgSrc,
-			commands: ['img']
+			commands: ['img', 'zoom']
 		}
 	);
 }
