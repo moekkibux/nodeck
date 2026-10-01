@@ -58,22 +58,24 @@ function createImageElement() {
 	image.alt = '';
 	image.src = addCacheBuster(imgSrc);
 
-	const scale = Math.max(
-		window.innerWidth / image.naturalWidth,
-		window.innerHeight / image.naturalHeight
-	);
-
-	Object.assign(image.style, {
-		position: 'fixed',
-		left: '50%',
-		top: '50%',
-		width: `${image.naturalWidth}px`,
-		height: `${image.naturalHeight}px`,
-		transform: `translate(-50%, -50%) scale(${scale * imageZoom / 100})`,
-		transformOrigin: 'center center',
-		zIndex: '99',
-		visibility: 'visible'
-	});
+	image.onload = () => {
+		const scale = Math.max(
+			window.innerWidth / image.naturalWidth,
+			window.innerHeight / image.naturalHeight
+		);
+	
+		Object.assign(image.style, {
+			position: 'fixed',
+			left: '50%',
+			top: '50%',
+			width: `${image.naturalWidth}px`,
+			height: `${image.naturalHeight}px`,
+			transform: `translate(-50%, -50%) scale(${scale * imageZoom / 100})`,
+			transformOrigin: 'center center',
+			zIndex: '99',
+			visibility: 'visible'
+		});
+	}
 
 	image.addEventListener('load', () => {
 		Logger.info(
