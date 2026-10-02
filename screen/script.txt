@@ -1,0 +1,12 @@
+pause(4)
+click("""#accept-btn""")
+pause(1)
+runScript("""document.querySelector('#intro-nickname').value = ''""")
+type("""#intro-nickname""", """Yodeck""")
+runScript("""document.querySelector("#intro-nickname").dispatchEvent(new Event("input", { bubbles: true }))""")
+pause(1)
+click("""#w2g-join-button""")
+pause(2)
+runScript("""
+# Script goes here
+""")
