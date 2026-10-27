@@ -4,8 +4,9 @@ const CONFIG = {
     commandPrefix: '/'
 };
 
-document.querySelectorAll('#w2g-rail-doit, #w2g-doit-corner, [data-google-query-id]').forEach(e => e.remove());
-document.body.style.visibility = 'hidden';
+const doc = window.top.document;
+doc.querySelectorAll('#w2g-rail-doit, #w2g-doit-corner, [data-google-query-id]').forEach(e => e.remove());
+doc.body.style.visibility = 'hidden';
 
 // ====================================
 // Logger
@@ -28,8 +29,11 @@ const Logger = (() => {
         }
 
         console[level]?.(...args) ?? console.log(...args);
-
         DebugOverlay.add(entry);
+
+        if (level === 'warn' || level === 'error') {
+            DebugPopup.show(entry);
+        }
     }
 
     return {
@@ -46,8 +50,7 @@ const Logger = (() => {
 // ====================================
 const DebugOverlay = (() => {
     let visible = false;
-
-    const root = document.createElement('div');
+    const root = doc.createElement('div');
 
     Object.assign(root.style, {
         position: 'fixed',
@@ -68,7 +71,7 @@ const DebugOverlay = (() => {
         whiteSpace: 'pre-wrap'
     });
 
-    document.documentElement.appendChild(root);
+    doc.documentElement.appendChild(root);
 
     function format(value) {
         if (value instanceof Error) {
@@ -88,7 +91,7 @@ const DebugOverlay = (() => {
 
     return {
         add(entry) {
-            const line = document.createElement('div');
+            const line = doc.createElement('div');
 
             line.textContent = 
                 `[${entry.timeStamp.toLocaleTimeString()}] ` +
@@ -122,6 +125,99 @@ const DebugOverlay = (() => {
         },
         isVisible() {
             return visible;
+        }
+    };
+})();
+
+// ====================================
+// Debug Popup
+// ====================================
+const DebugPopup = (() => {
+    const root = doc.createElement('div');
+
+    Object.assign(root.style, {
+        position: 'fixed',
+        top: '12px',
+        right: '12px',
+        width: 'min(420px, calc(100vw - 24px))',
+        maxHeight: '70vh',
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        zIndex: '127',
+        fontFamily: 'Consolas, monospace',
+        fontSize: '13px'
+    });
+
+    doc.documentElement.appendChild(root);
+
+    function format(value) {
+        if (value instanceof Error) {
+            return value.stack || value.message;
+        }
+
+        if (typeof value === 'object' && value !== null) {
+            try {
+                return JSON.stringify(value, null, 2);
+            } catch {
+                return String(value);
+            }
+        }
+
+        return String(value);
+    }
+
+    function show(entry) {
+        const isError = entry.level === 'error';
+        const popup = doc.createElement('div');
+
+        Object.assign(popup.style, {
+            background: isError ? '#3b1010' : '#3b300b',
+            color: isError ? '#ffcccc' : '#fff0b3',
+            border: `1px solid ${isError ? '#ff5555' : '#e6b422'}`,
+            borderLeft: `5px solid ${isError ? '#ff3333' : '#ffc107'}`,
+            borderRadius: '6px',
+            padding: '10px 12px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+            overflowWrap: 'anywhere',
+            whiteSpace: 'pre-wrap'
+        });
+
+        const header = doc.createElement('div');
+
+        Object.assign(header.style, {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '6px',
+            fontWeight: 'bold'
+        });
+
+        const title = doc.createElement('span');
+        title.textContent = 
+            `${isError ? 'ERROR' : 'WARN'} . ` + 
+            entry.timeStamp.toLocaleTimeString();
+
+        header.append(title);
+
+        const message = doc.createElement('div');
+        message.textContent = entry.args.map(format).join(' ');
+
+        popup.append(header, message);
+        root.prepend(popup);
+
+        while (root.children.length > 5) {
+            root.lastElementChild.remove();
+        }
+
+        setTimeout(() => popup.remove(), 300000);
+    }
+
+    return { 
+        show,
+        clear() {
+            root.childNodes.forEach(n => n.remove());
         }
     };
 })();
@@ -222,6 +318,15 @@ commands.register('debug', args => {
         return;
     }
 
+    if (args === 'logger') {
+        Logger.info('Testing info logging...');
+        Logger.warn('Testing warn logging...');
+        Logger.error('Testing error logging...');
+        Logger.info('Number of current logs: ' + Logger.entries().length);
+
+        return;
+    }
+
     const enabled = DebugOverlay.toggle();
 
     Logger.info(
@@ -244,7 +349,7 @@ commands.register('reload', () => {
 commands.register('state', () => {
     Logger.info({
         url: location.href,
-        title: document.title,
+        title: doc.title,
         commands: commands.list(),
         loadedAt: window.__w2gLoadedAt
     });
@@ -291,7 +396,7 @@ function processChatMessage(message) {
 // ====================================
 // W2G Chat Observer
 // ====================================
-const seen = new WeakSet(document.querySelectorAll('.w2g-message'));
+const seen = new WeakSet(doc.querySelectorAll('.w2g-message'));
 
 function startChatObserver() {
     const observer = new MutationObserver((mutations) => {
@@ -307,7 +412,7 @@ function startChatObserver() {
                 seen.add(message);
 
                 const text = message.querySelector(
-                    '.leading-tight.overflow-hidden.text-sm.break-words'
+                    '.leading-tight.overflow-hidden.text-sm'
                 )?.textContent.trim();
 
                 if (text) processChatMessage(text);
@@ -315,7 +420,7 @@ function startChatObserver() {
         }
     });
     observer.observe(
-        document.querySelector('.w2g-power-messages'), {
+        doc.querySelector('.w2g-power-messages'), {
             childList: true,
             subtree: true
         }
@@ -471,8 +576,7 @@ async function fetchScriptSource(scriptUrl) {
 }
 
 function executeScriptSource(source, sourceUrl) {
-    const sourceWithName =
-        `${source}\n//# sourceURL=${sourceUrl}`;
+    const sourceWithName = `${source}\n//# sourceURL=${sourceUrl}`;
 
     try {
         const execute = new Function(sourceWithName);
@@ -515,9 +619,7 @@ window.__w2g = {
 };
 
 window.__w2gConfig = CONFIG;
-
-window.__w2gLoadedAt =
-    new Date().toISOString();
+window.__w2gLoadedAt = new Date().toISOString();
 
 // ====================================
 // Startup
@@ -525,7 +627,6 @@ window.__w2gLoadedAt =
 Logger.info('Bootstrap starting');
 
 startChatObserver();
-
 loadScript();
 
 Logger.info('Bootstrap complete');
